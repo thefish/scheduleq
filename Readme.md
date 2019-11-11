@@ -1,7 +1,7 @@
 Timed queue
 ---
 
-Done by some article, i've made some improvement
+Done by some article, i've made some minor improvements.
 
 the basic idea is to plan execution of aritrary closures in future.
 

@@ -12,7 +12,9 @@ import(
 )
 
 func main() {
+	//queue init
 	q := scheduleq.Newqueue()
+	//plan a phrase printed to stdout in 1400 milliseconds
 	q.Plan(func(){
 		fmt.Println("trololo")
 	}, 1400)

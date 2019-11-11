@@ -17,8 +17,11 @@ func TestScheduleQueue(t *testing.T) {
 	q := scheduleq.NewQueue()
 
 	for i := 1; i < 4; i++ {
-		increment := i //because _current_ i would be out of scope, instead LAST value will be used, and you'll get 9 as result
-		cnt = cnt      //or you can do this as a variant, looks sick imo, but nevertheless binds to outer scope
+		increment := i 	//because _current_ i would be 3 in local scope at time of closure execution, 
+				//so LAST value of i  will be used, and you'll get 9 as result
+		
+		cnt = cnt      	//you can do this, looks sick imo, but nevertheless binds to outer scope
+		
 		q.Plan(func() {
 			func(holder *stateHolder) {
 				cnt = cnt + increment

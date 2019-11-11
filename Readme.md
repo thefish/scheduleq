@@ -3,7 +3,7 @@ Timed queue
 
 Done by some article, i've made some minor improvements.
 
-the basic idea is to plan execution of aritrary closures in future.
+the basic idea is to plan execution of arbitrary closures in future.
 
 ```go
 import(

@@ -32,4 +32,4 @@ func main() {
 ```
 
 Useful to process events in time quants, allowing us to fall behind to some degree if payload in functions took some 
-more time than was planned. There are some gotchas with scopes, see test for details and take note. 
+more time than was planned. There are some gotchas with scopes, **see test for details** and take note. 

@@ -22,11 +22,11 @@ func main() {
 	//then some time passes
 	time.Sleep(time.Second)
 	//but nothing happens
-	q.Advance()
+	q.Advance(time.Now)
 	//then some mmore time passes
 	time.Sleep(time.Second)
 	//and we get our message printed! 
-	q.Advance()
+	q.Advance(time.Now)
 }
 
 ```

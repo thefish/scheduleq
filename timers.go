@@ -7,29 +7,35 @@ import (
 
 var count int64
 
-type Timer struct {
-	id     int64
-	OnTime func()
+type Task struct {
+	id      int64
+	OnTime  func() error
+	retries int
+	OnFail  func()
 }
 
-func NewTimer(f func()) Timer {
-	id := atomic.AddInt64(&count, 1) //И действительно, спасибо!
-	return Timer{id: id, OnTime: f}
+func NewTaskWithRetry(f func() error) Task {
+	id := atomic.AddInt64(&count, 1)
+	return Task{
+		id:      id,
+		OnTime:  f,
+		retries: 0,
+	}
 }
 
-func EmptyTimer() Timer {
-	return Timer{}
+func EmptyTask() Task {
+	return Task{}
 }
 
-//события
-type timerData struct {
-	timer Timer
+// события
+type taskData struct {
+	timer Task
 	time  time.Time
 	index int
 }
 
-//implements heap interface
-type timers []*timerData
+// implements heap interface
+type timers []*taskData
 
 func (t timers) Len() int {
 	return len(t)
@@ -46,7 +52,7 @@ func (t timers) Swap(i, j int) {
 
 func (t *timers) Push(x interface{}) {
 	idx := len(*t)
-	item := x.(*timerData)
+	item := x.(*taskData)
 	item.index = idx
 	*t = append(*t, item)
 }

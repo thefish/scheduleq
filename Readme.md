@@ -17,10 +17,10 @@ import(
 
 func main() {
 	//queue init
-	q := scheduleq.Newqueue()
+	q := scheduleq.Newqueue(0,0,0)
 	task := NewTask(func() error {
-        fmt.Println("trololo")
-        return nil
+            fmt.Println("trololo")
+            return nil
 	})
 	//plan a phrase printed to stdout in 1400 milliseconds
 	q.Schedule(task, time.Now().Add(1400*time.Millisecond))

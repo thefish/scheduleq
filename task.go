@@ -8,19 +8,24 @@ import (
 var count int64
 
 type Task struct {
-	id      int64
-	OnTime  func() error
-	retries int
-	OnFail  func()
+	id          int64
+	OnTime      func() error
+	retries     int
+	OnRetryFail func()
 }
 
-func NewTaskWithRetry(f func() error) Task {
+func NewTask(f func() error) *Task {
 	id := atomic.AddInt64(&count, 1)
-	return Task{
+	return &Task{
 		id:      id,
-		OnTime:  f,
 		retries: 0,
+		OnTime:  f,
 	}
+}
+
+func (t *Task) WithOnRetryFail(f func()) *Task {
+	t.OnRetryFail = f
+	return t
 }
 
 func EmptyTask() Task {
@@ -29,7 +34,7 @@ func EmptyTask() Task {
 
 // события
 type taskData struct {
-	timer Task
+	task  Task
 	time  time.Time
 	index int
 }

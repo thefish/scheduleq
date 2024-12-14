@@ -106,8 +106,6 @@ func (q *Queue) PeekFirst() (t Task, tm time.Time) {
 // run before the time 'tm'. If error has occured, the task is rescheduled.
 // Successfully executed tasks are removed from the task queue.
 func (q *Queue) Advance(tm time.Time) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
 	for len(q.heap) > 0 && !tm.Before(q.heap[0].time) {
 		data := q.heap[0]
 		err := data.task.OnTime()
@@ -123,8 +121,10 @@ func (q *Queue) Advance(tm time.Time) {
 				}
 			}
 		}
+		q.mu.Lock()
 		heap.Remove(&q.heap, data.index)
 		delete(q.table, data.task.id)
+		q.mu.Unlock()
 	}
 }
 

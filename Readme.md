@@ -3,7 +3,11 @@ Timed queue
 
 Done by some article, i've made some minor improvements.
 
-the basic idea is to plan execution of arbitrary closures in future.
+The basic idea is to plan execution of arbitrary closures in future, and have zero dependencies.
+
+You can throttle planning by limiting number of functions being executed per period and set the period.
+
+### Example:
 
 ```go
 import(
@@ -14,10 +18,12 @@ import(
 func main() {
 	//queue init
 	q := scheduleq.Newqueue()
+	task := NewTask(func() error {
+        fmt.Println("trololo")
+        return nil
+	})
 	//plan a phrase printed to stdout in 1400 milliseconds
-	q.Plan(func(){
-		fmt.Println("trololo")
-	}, 1400)
+	q.Schedule(task, time.Now().Add(1400*time.Millisecond))
 	
 	//then some time passes
 	time.Sleep(time.Second)
@@ -32,4 +38,7 @@ func main() {
 ```
 
 Useful to process events in time quants, allowing us to fall behind to some degree if payload in functions took some 
-more time than was planned. There are some gotchas with scopes, **see test for details** and take note. 
+more time than was planned. **More details in** [tests](scheduleq_test.go). 
+
+It is not a distributed queue. Use proper message broker or database if you need one.
+

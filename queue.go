@@ -3,18 +3,21 @@ package scheduleq
 import (
 	"container/heap"
 	"errors"
+	"sync"
 	"time"
 )
 
 type Queue struct {
-	heap timers
+	heap tasks
 	//Указатели на кучу
 	table        map[int64]*taskData
 	Period       time.Duration
 	MaxPerPeriod int
 	MaxRetries   int
+	mu           sync.Mutex //needed to get correct queue length for throttling
 }
 
+// NewQueue returns a new instance of queue
 func NewQueue(period time.Duration, maxPerPeriod, maxRetries int) Queue {
 	return Queue{
 		table:        make(map[int64]*taskData),
@@ -31,6 +34,8 @@ func (q *Queue) Len() int {
 // Schedule schedules a task for execution at time tm. If the
 // task was already scheduled, it is rescheduled.
 func (q *Queue) Schedule(t Task, tm time.Time) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	if data, ok := q.table[t.id]; !ok {
 		data = &taskData{t, tm, 0}
 		heap.Push(&q.heap, data)
@@ -43,6 +48,8 @@ func (q *Queue) Schedule(t Task, tm time.Time) {
 
 // Unschedule unschedules a task's execution.
 func (q *Queue) Unschedule(t Task) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	if data, ok := q.table[t.id]; ok {
 		heap.Remove(&q.heap, data.index)
 		delete(q.table, t.id)
@@ -64,14 +71,19 @@ func (q *Queue) IsScheduled(t Task) bool {
 	return ok
 }
 
-// Clear unschedules all currently scheduled timers.
+// Clear unschedules all currently scheduled tasks.
 func (q *Queue) Clear() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	q.heap, q.table = nil, make(map[int64]*taskData)
 }
 
 // PopFirst removes and returns the next task to be scheduled and
 // the time at which it is scheduled to run.
 func (q *Queue) PopFirst() (t Task, tm time.Time) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
 	if len(q.heap) > 0 {
 		data := heap.Pop(&q.heap).(*taskData)
 		delete(q.table, data.task.id)
@@ -90,10 +102,12 @@ func (q *Queue) PeekFirst() (t Task, tm time.Time) {
 	return EmptyTask(), time.Time{}
 }
 
-// Advance executes OnTimer callbacks for all timers scheduled to be
-// run before the time 'tm'. Executed timers are removed from the
-// task queue.
+// Advance executes OnTimer callbacks for all tasks scheduled to be
+// run before the time 'tm'. If error has occured, the task is rescheduled.
+// Successfully executed tasks are removed from the task queue.
 func (q *Queue) Advance(tm time.Time) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	for len(q.heap) > 0 && !tm.Before(q.heap[0].time) {
 		data := q.heap[0]
 		err := data.task.OnTime()
@@ -114,13 +128,8 @@ func (q *Queue) Advance(tm time.Time) {
 	}
 }
 
-// Plan schedules new task without respect to throttling, just on time
-func (q *Queue) Plan(t *Task, after time.Time) {
-	q.Schedule(*t, after)
-}
-
-// PlanWithThrottle schedules new task in throttled manner
-func (q *Queue) PlanWithThrottle(t *Task) {
+// Plan schedules new task in throttled manner
+func (q *Queue) Plan(t *Task) {
 	q.Schedule(*t, q.getDelay())
 }
 

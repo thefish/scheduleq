@@ -28,7 +28,7 @@ func TestScheduleQueue(t *testing.T) {
 			}(sh)
 			return nil
 		})
-		q.Plan(task, time.Now().Add(100*time.Millisecond))
+		q.Schedule(*task, time.Now().Add(100*time.Millisecond))
 	}
 	q.Advance(time.Now().Add(time.Second))
 	t.Log("holder struct = ", sh.counter)
@@ -47,7 +47,7 @@ func TestThrottledScheduleq(t *testing.T) {
 			t.Logf("Func %d running", increment)
 			return nil
 		})
-		q.PlanWithThrottle(task)
+		q.Plan(task)
 	}
 	t.Log("len = ", q.Len())
 	if q.Len() != 7 {

@@ -40,29 +40,29 @@ type taskData struct {
 }
 
 // implements heap interface
-type timers []*taskData
+type tasks []*taskData
 
-func (t timers) Len() int {
+func (t tasks) Len() int {
 	return len(t)
 }
 
-func (t timers) Less(i, j int) bool {
+func (t tasks) Less(i, j int) bool {
 	return t[i].time.Before(t[j].time)
 }
 
-func (t timers) Swap(i, j int) {
+func (t tasks) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 	t[i].index, t[j].index = t[j].index, t[i].index
 }
 
-func (t *timers) Push(x interface{}) {
+func (t *tasks) Push(x interface{}) {
 	idx := len(*t)
 	item := x.(*taskData)
 	item.index = idx
 	*t = append(*t, item)
 }
 
-func (t *timers) Pop() interface{} {
+func (t *tasks) Pop() interface{} {
 	old := *t
 	n := len(old)
 	item := old[n-1]
